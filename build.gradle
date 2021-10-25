@@ -1,0 +1,71 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.5'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'com.webflux'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "2020.0.4")
+}
+
+dependencies {
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+	testImplementation 'io.projectreactor:reactor-test'
+	// jdbc
+	// implementation 'mysql:mysql-connector-java'
+	// implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	
+	// r2dbc
+	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	runtimeOnly 'dev.miku:r2dbc-mysql'
+	runtimeOnly 'mysql:mysql-connector-java'
+	 
+	// jpa
+	// implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	
+	// auto restart
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	
+	// lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	
+	// Resilience4j
+	implementation 'org.springframework.boot:spring-boot-starter-aop'       // Resilience4j의 어노테이션 방식을 사용하기 위해 필요
+	implementation "io.github.resilience4j:resilience4j-spring-boot2:1.7.0" // Resilience4j
+	implementation 'io.github.resilience4j:resilience4j-reactor:1.7.0'      // Reactive 환경에서 Resilience4j를 사용 하기 위해 필요
+	
+	// actuator (circuitbreaker status check)
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	
+    // Eureka
+    // implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    
+    // session
+	implementation 'org.springframework.session:spring-session-core'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.session:spring-session-data-redis'
+	
+	// https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
+	implementation group: 'org.apache.commons', name: 'commons-pool2', version: '2.11.1'// session
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+test {
+	useJUnitPlatform()
+}

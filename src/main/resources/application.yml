@@ -1,0 +1,114 @@
+logging:
+  level:
+    root: info
+    '[org.springframework.r2dbc]': DEBUG
+
+server:
+  port : 8090
+#  port : 8083
+
+spring:
+#  datasource:
+#    driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#    url: jdbc:log4jdbc:mysql://server.msinfotech.co.kr:3306/msa_test?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+#    username: root
+#    password: msit!@#4
+#  jpa:
+#    hibernate:
+#      ddl-auto: validate
+#      naming:
+#        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+#      use-new-id-generator-mappings: false
+#    properties:
+#      hibernate.format_sql: true
+#    generate-ddl: true
+#    show-sql: true
+  r2dbc:
+    url: r2dbc:pool:mysql://server.msinfotech.co.kr:3306/msa_test?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: root
+    password: msit!@#4
+    pool:
+      initial-size: 100
+      max-size: 500
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  session:
+    timeout: 600
+    store-type: redis
+    redis:
+      flush-mode: immediate
+  redis:
+    host: localhost
+    port: 6379
+
+
+
+## :: 유레카 :: 
+#  application:
+#    name: board-server
+#eureka:
+#  client:
+#    register-with-eureka: true
+#    fetch-registry: true
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka
+
+
+# :: 서킷브레이커 ::
+# actuator를 통해 circuitbraker 상태를 확인하기 위해 설정 (/actuator/health)
+management.health.circuitbreakers.enabled: true
+# actuator에서 디테일한 정보들을 확인하기 위해 설정
+management.endpoint.health.show-details: always
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      # actuator를 통해 circuitbraker 상태를 확인하기 위해 설정
+      registerHealthIndicator: true
+      # Circuit Breaker가 에러 비율 또 slow call 비율을 계산하기 전에 요구되는 최소한의 요청 수
+      minimumNumberOfCalls: 5
+      # 에러 비율 (퍼센트)로 해당 값 이상으로 에러 발생시 서킷이 Open 된다.
+      failureRateThreshold: 50
+      # 서킷의 상태가 Open에서 Half-open으로 변경되기 전에 Circuit Breaker가 기다리는 시간
+      waitDurationInOpenState: 5s
+  instances:
+    boardCircuitBreaker:
+      baseConfig: default
+
+resilience4j.bulkhead:
+  instances:
+    boardCircuitBreaker:
+      # 허가된 동시 실행 수를 25로 지정
+      maxConcurrentCalls: 25
+      # 포화 상태의 Bulkhead에 진입하기 위해 block 되는 최대 시간, 값이 0이므로 바로 요청을 막는다.
+      maxWaitDuration: 0
+
+resilience4j.ratelimiter:
+  instances:
+    boardCircuitBreaker:
+      # limitRefreshPeriod 기간 동안 허용되는 요청 수
+      limitForPeriod: 50
+      # limit refresh 기간
+      limitRefreshPeriod: 500ns
+      # 허가를 위해 쓰레드가 대기하는 기본 시간
+      timeoutDuration: 5s
+      registerHealthIndicator: true
+
+# fallback method가 정의되어있지 않은 에러의 경우에만 재시도 한다.
+resilience4j.retry:
+  instances:
+    boardCircuitBreaker:
+      # 최대 재시도 수
+      maxRetryAttempts: 3
+      # 재시도 사이에 고정된 시간
+      waitDuration: 500ms
+      retryExceptions:
+      # Empty 일 경우 모든 에러 클래스에 대해 재시도
+#        - org.springframework.web.client.HttpServerErrorException
+#        - io.github.resilience4j.circuitbreaker.Exception
+
+resilience4j.timelimiter:
+  instances:
+    boardCircuitBreaker:
+      # 원격 서버로부터 해당 시간안에 응답이 오는 것을 제한
+      timeoutDuration: 1s
