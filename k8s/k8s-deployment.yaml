@@ -7,6 +7,11 @@ spec:
   selector:
     matchLabels:
       app: board-api
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -23,8 +28,3 @@ spec:
               value: 'DATE_STRING'
       imagePullSecrets:
         - name: ms-secret
-strategy:
-  rollingUpdate:
-    maxSurge: 1
-    maxUnavailable: 1
-  type: RollingUpdate
