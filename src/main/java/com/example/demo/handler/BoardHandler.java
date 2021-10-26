@@ -61,8 +61,8 @@ public class BoardHandler {
 				// webclient 위한 코드
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-//				String URL = "http://user.test.com/user/list/userNm";	// 임시 user url
-				String URL = "http://localhost:8084/user/list/userNm";	// 임시 user url
+				String URL = "http://10.107.154.32:8092";	// 임시 user url
+//				String URL = "http://localhost:8084/user/list/userNm";	// 임시 user url
 				
 				Mono<List> userNames = webClient
 						.post()   
@@ -114,8 +114,8 @@ public class BoardHandler {
 				// [::::::::::: webclient ::::::::::::]
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-//				String URL = "http://user.test.com/user/list/userNmOne";	// 임시 user url
-				String URL = "http://localhost:8084/user/list/userNmOne";	// 임시 user url
+				String URL = "http://10.107.154.32:8092";	// 임시 user url
+//				String URL = "http://localhost:8084/user/list/userNmOne";	// 임시 user url
 				
 				Mono<List> userNames = webClient
 						.post()   
