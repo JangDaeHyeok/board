@@ -61,9 +61,9 @@ public class BoardHandler {
 				// webclient 위한 코드
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-				String URL = "http://10.107.154.32:8092/user/list/userNmOne";	// 임시 user url
+				String URL = "http://10.107.154.32:8092/user/list/userNm";	// 임시 user url
 //				String URL = "http://localhost:8084/user/list/userNm";	// 임시 user url
-				
+				log.error("####### :: board webClient Start :: #######");
 				Mono<List> userNames = webClient
 						.post()   
 						.uri(URL)  //요청 URL
@@ -73,7 +73,7 @@ public class BoardHandler {
 						.bodyToMono(List.class);
 				
 				Mono<Map<Object, Object>> monoMapper = Mono.just(returnMap);
-				
+				log.error("####### :: board webClient End :: #######");
 				return Mono.zip(list, totalCnt, userNames).flatMap(dd -> {
 					List<Board> boardList = dd.getT1();
 					List<Map<Object, Object>> userList = dd.getT3();
@@ -116,7 +116,7 @@ public class BoardHandler {
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
 				String URL = "http://10.107.154.32:8092/user/list/userNmOne";	// 임시 user url
 //				String URL = "http://localhost:8084/user/list/userNmOne";	// 임시 user url
-				
+				log.error("####### :: board webClient Start :: #######");
 				Mono<List> userNames = webClient
 						.post()   
 						.uri(URL)  //요청 URL
@@ -125,6 +125,7 @@ public class BoardHandler {
 						.retrieve()
 						.bodyToMono(List.class);
 				
+				log.error("####### :: board webClient End :: #######");
 				Mono<Map<Object, Object>> monoMapper = Mono.just(returnMap);
 				
 				return Mono.zip(listOne, userNames).flatMap(dd -> {
