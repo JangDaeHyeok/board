@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.example.demo.handler.BoardFileHandler;
 import com.example.demo.handler.BoardHandler;
+import com.example.demo.handler.TestHandler;
 
 @Configuration
 public class RoutsConfig {
@@ -24,11 +25,18 @@ public class RoutsConfig {
                 .build(); 
     }
 	
-	@Bean
-	public RouterFunction<ServerResponse> boardFileRouter(BoardFileHandler handler) {
-		return RouterFunctions.route()
-				.POST("/board/file/save", RequestPredicates.accept(MediaType.MULTIPART_FORM_DATA), handler::boardFileAdd)
-				.build(); 
-	}
+//	@Bean
+//	public RouterFunction<ServerResponse> boardFileRouter(BoardFileHandler handler) {
+//		return RouterFunctions.route()
+//				.POST("/board/file/upload/{boardIdx}", RequestPredicates.accept(MediaType.MULTIPART_FORM_DATA), handler::boardFileUpload)
+//				.GET("/board/file/download/{fileNm}", RequestPredicates.accept(MediaType.TEXT_PLAIN), handler::boardFileDownload)
+//				.build(); 
+//	}
 	
+	@Bean
+    public RouterFunction<ServerResponse> testRouter(TestHandler handler) {
+        return RouterFunctions.route()
+                .GET("/readiness", handler::boardReadiness)
+                .build(); 
+    }
 }
