@@ -1,6 +1,6 @@
-/* pipeline ???? ???? */
-def DOCKER_IMAGE_NAME = "sktellecom/ms-test"   // ??????? Docker image ???
-def DOCKER_IMAGE_TAGS = "board-api"  // ??????? Docker image ?��?
+/* pipeline 변수 설정 */
+def DOCKER_IMAGE_NAME = "sktellecom/ms-test"   // 생성하는 Docker image 이름
+def DOCKER_IMAGE_TAGS = "board-api"  // 생성하는 Docker image 태그
 def NAMESPACE = "ms-test"
 def VERSION = "${env.BUILD_NUMBER}"
 def DATE = new Date();
