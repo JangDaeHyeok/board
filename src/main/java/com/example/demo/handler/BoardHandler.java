@@ -16,6 +16,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.example.demo.board.Board;
 import com.example.demo.board.BoardRepository;
+import com.example.demo.board.file.BoardFile;
+import com.example.demo.board.file.BoardFileRepository;
 import com.example.demo.util.UUIDUtil;
 
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
@@ -33,6 +35,8 @@ public class BoardHandler {
 	
 	@Autowired
 	BoardRepository boardRepository;
+	@Autowired
+	BoardFileRepository boardFileRepository;
 	
 	// board list
 	@RateLimiter(name = BOARD_CIRCUIT_BREAKER)
@@ -54,15 +58,24 @@ public class BoardHandler {
 				int size = Integer.valueOf(s.get("size").toString());
 //				Sort sort = Sort.by("reg_dt").descending();
 //				Mono<List<Board>> list = boardRepository.findAll(sort).skip(paging * size).take(size).collectList();
-				Mono<Integer> totalCnt = boardRepository.findTotalCount(s.get("boardType").toString());
-				Mono<List<Board>> list = boardRepository.findAllPaging(s.get("boardType").toString(), paging * size, size).collectList();
+				
+				Board board = Board.builder()
+							.boardType(s.get("boardType").toString())
+							.delYn("N")
+							.build();
+				if(s.get("searchType") != null && !s.get("searchType").equals("")) {
+					board.setSearchType(s.get("searchType").toString());
+					board.setSearchKeyword(s.get("searchKeyword").toString());
+				}
+				Mono<Integer> totalCnt = boardRepository.findTotalCount(board);
+				Mono<List<Board>> list = boardRepository.findAllPaging(board, paging * size, size).collectList();
 				
 				// [::::::::::: webclient ::::::::::::]
 				// webclient 위한 코드
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-				String URL = "http://10.107.154.32:8092/user/list/userNm";	// 임시 user url
-//				String URL = "http://localhost:8084/user/list/userNm";	// 임시 user url
+//				String URL = "http://10.107.154.32:8092/user/list/userNm";	// 임시 user url
+				String URL = "http://localhost:8084/user/list/userNm";	// 임시 user url
 				log.error("####### :: board webClient Start :: #######");
 				Mono<List> userNames = webClient
 						.post()   
@@ -111,11 +124,12 @@ public class BoardHandler {
 			// 게시판 상세보기
 			else if(viewType.equals("detailView")){
 				Mono<Board> listOne = boardRepository.findById(s.get("boardIdx").toString());
+				Mono<List<BoardFile>> fileList = boardFileRepository.findByBoardIdx(s.get("boardIdx").toString()).collectList();
 				// [::::::::::: webclient ::::::::::::]
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-				String URL = "http://10.107.154.32:8092/user/list/userNmOne";	// 임시 user url
-//				String URL = "http://localhost:8084/user/list/userNmOne";	// 임시 user url
+//				String URL = "http://10.107.154.32:8092/user/list/userNmOne";	// 임시 user url
+				String URL = "http://localhost:8084/user/list/userNmOne";	// 임시 user url
 				log.error("####### :: board webClient Start :: #######");
 				Mono<List> userNames = webClient
 						.post()   
@@ -128,7 +142,7 @@ public class BoardHandler {
 				log.error("####### :: board webClient End :: #######");
 				Mono<Map<Object, Object>> monoMapper = Mono.just(returnMap);
 				
-				return Mono.zip(listOne, userNames).flatMap(dd -> {
+				return Mono.zip(listOne, userNames, fileList).flatMap(dd -> {
 					Board one = dd.getT1();
 					List<Map<Object, Object>> userList = dd.getT2();
 					if(userList.size() > 0 && userList.get(0).get("userName") != null) {
@@ -138,6 +152,7 @@ public class BoardHandler {
 						one.setUserNm("미등록 유저");
 					}
 					returnMap.put("one", one);
+					returnMap.put("fileList", dd.getT3());
 					
 					return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
 							.body(BodyInserters.fromProducer(monoMapper, Map.class));
@@ -163,8 +178,13 @@ public class BoardHandler {
 			try {
 				// board insert
 				// repository insert는 pk값이 null이어야 insert를 하지만 uuid는 자동으로 생성안되므로 수기로 insert해야됨 (2021-10-18)
+				log.error("** 들어온 boardIdx : " + s.getBoardIdx());
+				String boardIdx = UUIDUtil.createUUID();
+				if(s.getBoardIdx() != null && !s.getBoardIdx().equals("")) {
+					boardIdx = s.getBoardIdx();
+				}
 				Board board = Board.builder()
-				.boardIdx(UUIDUtil.createUUID())
+				.boardIdx(boardIdx)
 				.boardType(s.getBoardType())
 				.title(s.getTitle())
 				.userId(s.getUserId())
@@ -197,8 +217,12 @@ public class BoardHandler {
 				.userId(s.getUserId())
 				.contents(s.getContents())
 				.build();
-//				boardRepository.save(board).subscribe();
 				boardRepository.updateBoard(board).subscribe();
+				if(s.getFileDelList().size() > 0) {
+					for (int i = 0; i < s.getFileDelList().size(); i++) {
+						boardFileRepository.updateOneDelBoardFile(s.getFileDelList().get(i)).subscribe();
+					}
+				}
 				return ServerResponse.ok().body(Mono.just("success"), String.class);
 			} catch (Exception e) {
 				log.error("** board update fail : " + e.getMessage());
@@ -215,10 +239,23 @@ public class BoardHandler {
 	public Mono<ServerResponse> boardDel(ServerRequest request) {
 		Mono<Board> acceptData = request.bodyToMono(Board.class);
 		return acceptData.flatMap(s -> {
-			System.out.println(s);
 			// board delete
 			try {
-				boardRepository.deleteById(s.getBoardIdx()).subscribe();
+				// delete
+//				boardRepository.deleteById(s.getBoardIdx()).subscribe();
+				
+				// delyn y로 변경
+				Board board = Board.builder()
+							.boardIdx(s.getBoardIdx())
+							.delYn("Y")
+							.build();
+				// 파일도 삭제
+				BoardFile boardFile = BoardFile.builder()
+									  .boardIdx(s.getBoardIdx())
+									  .delYn("Y")
+									  .build();
+				boardRepository.updateDelBoard(board).subscribe();
+				boardFileRepository.updateAllDelBoardFile(boardFile).subscribe();
 				return ServerResponse.ok().body(Mono.just("success"), String.class);
 			} catch (Exception e) {
 				log.error("** board delete fail : " + e.getMessage());
