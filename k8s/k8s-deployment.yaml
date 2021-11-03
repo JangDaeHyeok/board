@@ -22,7 +22,7 @@ spec:
             - name: DATE
               value: 'DATE_STRING'
           volumeMounts:
-            - hostPath: "/board"
+            - mountPath: "/board"
               name: board-volume
       volumes:
       - name: board-volume
