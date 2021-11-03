@@ -38,6 +38,9 @@ public class BoardHandler {
 	@Autowired
 	BoardFileRepository boardFileRepository;
 	
+	private final String totalURL = "http://10.107.154.32:8092";	// commit 용
+//	private String totalURL = "http://localhost:8084";				// local 용
+	
 	// board list
 	@RateLimiter(name = BOARD_CIRCUIT_BREAKER)
 	@Bulkhead(name = BOARD_CIRCUIT_BREAKER)
@@ -58,7 +61,7 @@ public class BoardHandler {
 				int size = Integer.valueOf(s.get("size").toString());
 //				Sort sort = Sort.by("reg_dt").descending();
 //				Mono<List<Board>> list = boardRepository.findAll(sort).skip(paging * size).take(size).collectList();
-				
+				String URL = totalURL + "/user/list/userNm";
 				Board board = Board.builder()
 							.boardType(s.get("boardType").toString())
 							.delYn("N")
@@ -74,8 +77,6 @@ public class BoardHandler {
 				// webclient 위한 코드
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-				String URL = "http://10.107.154.32:8092/user/list/userNm";	// 임시 user url
-//				String URL = "http://localhost:8084/user/list/userNm";	// 임시 user url
 				log.error("####### :: board webClient Start :: #######");
 				Mono<List> userNames = webClient
 						.post()   
@@ -128,9 +129,9 @@ public class BoardHandler {
 				// [::::::::::: webclient ::::::::::::]
 				WebClient webClient = WebClient.builder().defaultHeader(HttpHeaders.USER_AGENT, "Spring 5 WebClient")
 						.defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json").build();
-				String URL = "http://10.107.154.32:8092/user/list/userNmOne";	// 임시 user url
-//				String URL = "http://localhost:8084/user/list/userNmOne";	// 임시 user url
 				log.error("####### :: board webClient Start :: #######");
+				
+				String URL = totalURL + "/user/list/userNmOne";
 				Mono<List> userNames = webClient
 						.post()   
 						.uri(URL)  //요청 URL
