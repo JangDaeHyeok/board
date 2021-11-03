@@ -21,9 +21,9 @@ spec:
           env:
             - name: DATE
               value: 'DATE_STRING'
-      volumeMounts:
-        - mountPath: "/board"
-          name: board-volume
+          volumeMounts:
+            - mountPath: "/board"
+              name: board-volume
       volumes:
       - name: board-volume
         persistentVolumeClaim:
