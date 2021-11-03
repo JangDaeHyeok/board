@@ -21,14 +21,14 @@ spec:
           env:
             - name: DATE
               value: 'DATE_STRING'
-          volumeMounts:
-            - mountPath: "/board"
-              name: board-volume
-          volumes:
-          - name: board-volume
-            persistentVolumeClaim:
-            claimName: board-pvc
-      imagePullSecrets:
+      volumeMounts:
+        - mountPath: "/board"
+          name: board-volume
+      volumes:
+      - name: board-volume
+        persistentVolumeClaim:
+          claimName: board-pvc
+    imagePullSecrets:
         - name: ms-secret
   strategy:
     rollingUpdate:
