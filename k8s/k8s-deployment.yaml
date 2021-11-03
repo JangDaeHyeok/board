@@ -7,11 +7,6 @@ spec:
   selector:
     matchLabels:
       app: board-api
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -26,5 +21,17 @@ spec:
           env:
             - name: DATE
               value: 'DATE_STRING'
+          volumeMounts:
+            - mountPath: "/board"
+              name: board-volume
+          volumes:
+          - name: board-volume
+            persistentVolumeClaim:
+            claimName: board-pvc
       imagePullSecrets:
         - name: ms-secret
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
