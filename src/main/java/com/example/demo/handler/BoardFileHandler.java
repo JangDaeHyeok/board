@@ -79,7 +79,7 @@ public class BoardFileHandler {
 		String fileNm = request.pathVariable("fileNm");
 		String path = Paths.get("board/" + fileNm).toAbsolutePath().normalize().toString();
 		
-		log.error("file path : " + path);
+		log.error("file path : " + path); 
 		
 		Resource resource = new FileSystemResource(path);
         Mono<Resource> mapper = Mono.just(resource);  
