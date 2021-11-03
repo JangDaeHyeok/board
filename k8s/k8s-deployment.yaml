@@ -28,7 +28,7 @@ spec:
       - name: board-volume
         persistentVolumeClaim:
           claimName: board-pvc
-    imagePullSecrets:
+      imagePullSecrets:
         - name: ms-secret
   strategy:
     rollingUpdate:
